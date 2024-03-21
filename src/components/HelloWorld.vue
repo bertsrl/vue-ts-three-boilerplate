@@ -1,58 +1,64 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+  <div id="parent-canvas">
+    <canvas id="canvas"></canvas>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'HelloWorld',
-  props: {
-    msg: String
-  }
+<script setup lang="ts">
+import * as THREE from "three";
+import { onMounted, ref } from "vue";
+import * as f from "./functions";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+
+const rendererRef = ref();
+const controlsRef = ref();
+
+onMounted(() => {
+  const canvas = document.getElementById("canvas")!;
+
+  const renderer = new THREE.WebGLRenderer({
+    canvas: canvas,
+  });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  rendererRef.value = renderer;
+
+  const geometry = new THREE.BoxGeometry(1, 1, 1);
+  const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+  const cube = new THREE.Mesh(geometry, material);
+  f.scene.add(cube);
+
+  f.camera.position.z = 5;
+
+  const parentElement = document.getElementById("parent-canvas")!; // Replace with the actual ID or reference to the parent element
+
+  f.resize(renderer, f.camera, f.sizes, parentElement);
+  f.cursor(f.sizes, f.camera);
+
+  // // Controls
+  const controls = new OrbitControls(f.camera, canvas);
+  controls.enableDamping = true;
+
+  controlsRef.value = controls;
+
+  animate();
+});
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  controlsRef.value.update();
+
+  rendererRef.value.render(f.scene, f.camera);
 }
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h3 {
-  margin: 40px 0 0;
+<style>
+#canvas,
+#parent-canvas {
+  height: 100vh !important;
 }
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
+
+body {
+  margin: 0;
 }
 </style>
